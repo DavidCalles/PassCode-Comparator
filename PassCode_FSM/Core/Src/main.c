@@ -21,6 +21,7 @@
 #include "main.h"
 #include <stdio.h>
 #include <stdint.h>
+#include "lcd.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -34,6 +35,33 @@
 
 #define MAX_NAME_SIZE 16		// Max Length of a name
 #define MY_EOF 13
+/*LED pin*/
+#define LED_GPIO GPIOA		// Output GPIO
+#define LED_PIN GPIO_PIN_12	// Output pin (Pin D2 on board)
+
+/*LCD screen pins*/
+#define D0_GPIO_Port GPIOB	// Data 0 GPIO port
+#define D1_GPIO_Port GPIOB	// Data 1 GPIO port
+#define D2_GPIO_Port GPIOB	// Data 2 GPIO port
+#define D3_GPIO_Port GPIOB	// Data 3 GPIO port
+#define D4_GPIO_Port GPIOA	// Data 4 GPIO port
+#define D5_GPIO_Port GPIOA	// Data 5 GPIO port
+#define D6_GPIO_Port GPIOB	// Data 6 GPIO port
+#define D7_GPIO_Port GPIOB	// Data 7 GPIO port
+
+#define D0_Pin GPIO_PIN_0	// Data 0 pin (D3 on board)
+#define D1_Pin GPIO_PIN_7	// Data 0 pin (D4 on board)
+#define D2_Pin GPIO_PIN_6	// Data 0 pin (D5 on board)
+#define D3_Pin GPIO_PIN_1	// Data 0 pin (D6 on board)
+#define D4_Pin GPIO_PIN_8	// Data 0 pin (D9 on board)
+#define D5_Pin GPIO_PIN_11	// Data 0 pin (D10 on board)
+#define D6_Pin GPIO_PIN_5	// Data 0 pin (D11 on board)
+#define D7_Pin GPIO_PIN_4	// Data 0 pin (D12 on board)
+
+#define RS_GPIO_Port GPIOA		 // Register select GPIO port
+#define RS_Pin 		 GPIO_PIN_9  // Register select pin (D1)
+#define EN_GPIO_Port GPIOA		 // Enable GPIO port
+#define EN_Pin		 GPIO_PIN_10 // Register select pin (D0)
 /* USER CODE END PD */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -93,6 +121,16 @@ COMPARISON StringCompare(char *, char *, uint8_t);
 int main(void)
 {
 	/* USER CODE BEGIN 1 */
+
+	// GPIO Ports for LCD
+	Lcd_PortType ports[] = {
+		D0_GPIO_Port, D1_GPIO_Port, D2_GPIO_Port, D3_GPIO_Port,
+		D4_GPIO_Port, D5_GPIO_Port, D6_GPIO_Port, D7_GPIO_Port
+	 };
+	// GPIO Pins for LCD
+	Lcd_PinType pins[] = {D0_Pin, D1_Pin, D2_Pin, D3_Pin,
+						  D4_Pin, D5_Pin, D6_Pin, D7_Pin};
+
 	// Database with stored passcodes and names
 	static PASSCODE db[NUM_PASSCODES] = {
 			{"0123", "David Calles"},
@@ -129,10 +167,20 @@ int main(void)
 	MX_USART2_UART_Init();
 	MX_TIM2_Init();
 
+	// Create handler for the LCD
+	Lcd_HandleTypeDef lcd;
+	lcd = Lcd_create(ports, pins,
+				  RS_GPIO_Port, RS_Pin,
+				  EN_GPIO_Port, EN_Pin,
+				  LCD_8_BIT_MODE);
 	/* USER CODE BEGIN 2 */
 	printf("Hello User!\r\n");
 	/* USER CODE END 2 */
-
+	Lcd_clear(&lcd);
+	Lcd_cursor(&lcd, 0,3);
+	Lcd_string(&lcd, "Pass Code");
+	Lcd_cursor(&lcd, 1,0);
+	Lcd_string(&lcd, "by David Calles!");
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1)
@@ -210,6 +258,7 @@ int main(void)
 					printf("Press any key to reset. \r\n");
 					//GREEN signal
 					ch = getchar();
+					printf("Hello User!. \r\n");
 					n = 0;
 					cPass = 0;
 					result = NOT_EQUAL;
@@ -442,23 +491,54 @@ static void MX_DMA_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
+	/* GPIO Ports Clock Enable */
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
+	/*Configure GPIO pin Output Level */
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_1|LD3_Pin|GPIO_PIN_4
+						  |GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : LD3_Pin */
-  GPIO_InitStruct.Pin = LD3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LD3_GPIO_Port, &GPIO_InitStruct);
+	/*Configure GPIO pin Output Level */
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11
+						  |GPIO_PIN_12, GPIO_PIN_RESET);
 
+	/*Configure LED Output level*/
+	HAL_GPIO_WritePin(LED_GPIO, LED_PIN, GPIO_PIN_RESET);
+
+	/*Configure GPIO pins : PB0 PB1 LD3_Pin PB4
+						   PB5 PB6 PB7 */
+	GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|LD3_Pin|GPIO_PIN_4
+						  |GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
+	if(LED_GPIO == GPIOB) // Add Led pin if part of GPIOB
+	  GPIO_InitStruct.Pin |= LED_PIN;
+
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	/*Configure GPIO pins : PA8 PA9 PA10 PA11
+						   PA12 */
+	GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11
+						  |GPIO_PIN_12;
+	if(LED_GPIO == GPIOA)// Add Led pin if part of GPIOA
+	  GPIO_InitStruct.Pin |= LED_PIN;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	/*Configure GPIO pin : VCP_RX_Pin */
+	GPIO_InitStruct.Pin = VCP_RX_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	GPIO_InitStruct.Alternate = GPIO_AF3_USART2;
+	HAL_GPIO_Init(VCP_RX_GPIO_Port, &GPIO_InitStruct);
 }
 
 /* USER CODE BEGIN 4 */

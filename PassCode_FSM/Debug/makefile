@@ -61,8 +61,8 @@ all: main-build
 main-build: PassCode_FSMV0.elf secondary-outputs
 
 # Tool invocations
-PassCode_FSMV0.elf: $(OBJS) $(USER_OBJS) C:\Users\yodav\Documents\Conestoga_College\FIRST_TERM\Embedded_Programming\Assignments\Assignment2\PassCode_FSMV0\STM32L432KCUX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "PassCode_FSMV0.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\yodav\Documents\Conestoga_College\FIRST_TERM\Embedded_Programming\Assignments\Assignment2\PassCode_FSMV0\STM32L432KCUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="PassCode_FSMV0.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+PassCode_FSMV0.elf: $(OBJS) $(USER_OBJS) C:\Users\yodav\Documents\Conestoga_College\FIRST_TERM\Embedded_Programming\Assignments\Assignment2\PassCode-Comparator\PassCode_FSM\STM32L432KCUX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "PassCode_FSMV0.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\yodav\Documents\Conestoga_College\FIRST_TERM\Embedded_Programming\Assignments\Assignment2\PassCode-Comparator\PassCode_FSM\STM32L432KCUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="PassCode_FSMV0.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
