@@ -131,6 +131,9 @@ int main(void)
 	Lcd_PinType pins[] = {D0_Pin, D1_Pin, D2_Pin, D3_Pin,
 						  D4_Pin, D5_Pin, D6_Pin, D7_Pin};
 
+	// Temporal buffer for lcd messages
+	char messg[17];
+
 	// Database with stored passcodes and names
 	static PASSCODE db[NUM_PASSCODES] = {
 			{"0123", "David Calles"},
@@ -174,13 +177,16 @@ int main(void)
 				  EN_GPIO_Port, EN_Pin,
 				  LCD_8_BIT_MODE);
 	/* USER CODE BEGIN 2 */
+	// Initial message serial
 	printf("Hello User!\r\n");
-	/* USER CODE END 2 */
+
+	// Initial message LCD
 	Lcd_clear(&lcd);
 	Lcd_cursor(&lcd, 0,3);
 	Lcd_string(&lcd, "Pass Code");
 	Lcd_cursor(&lcd, 1,0);
 	Lcd_string(&lcd, "by David Calles!");
+	/* USER CODE END 2 */
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1)
@@ -192,13 +198,20 @@ int main(void)
 				if(n < (MAX_PASS_SIZE+1)){
 					ch = getchar();	// Get character
 					state = CHECKING_PASS;
-				}
+				}//if
 				// Pass bigger than correct size
 				else{
+					//Show message on LCD
+					Lcd_clear(&lcd);
+					Lcd_cursor(&lcd, 0,0);
+					Lcd_string(&lcd, "Input too long!");
+					Lcd_cursor(&lcd, 1,0);
+					Lcd_string(&lcd, "Try again.");
+					//Show message on serial terminal
 					printf("Input is too long, Try again!: %c \r\n",ch);
 					n = 0;
 					state = RECEIVING_PASS;
-				}
+				}//else
 				break;
 			}// State 0
 
@@ -209,20 +222,30 @@ int main(void)
 					myPass[n] = (uint8_t)ch;
 					++n;
 					state = RECEIVING_PASS;
-				}
+				}//if
 				// "Enter" received and size is appropriate
 				else if( (ch == MY_EOF) && (n == (MAX_PASS_SIZE)) ){
 					cPass = 0;
-					printf("Input is: %s \r\n", myPass);
+
+					//Show message on Serial Terminal
+					printf("Input is: %.4s \r\n", myPass);
 					printf("Elements: %d \r\n", sizeof(myPass));
 					state = COMPARING_PASS;
-				}
+				}//else if
 				// "Enter" received and size is not appropriate
 				else{
+					//Show message on LCD
+					Lcd_clear(&lcd);
+					Lcd_cursor(&lcd, 0,0);
+					Lcd_string(&lcd, "Input too short!");
+					Lcd_cursor(&lcd, 1,0);
+					Lcd_string(&lcd, "Try again.");
+
+					//Show message on serial terminal
 					printf("Input is too short, Try again! \r\n");
 					n = 0;
 					state = RECEIVING_PASS;
-				}
+				}//else
 				break;
 			}// State 1
 
@@ -236,6 +259,14 @@ int main(void)
 				}
 				// All passwords have been checked
 				else{
+					//Show message on LCD
+					Lcd_clear(&lcd);
+					Lcd_cursor(&lcd, 0,0);
+					Lcd_string(&lcd, "Incorrect pass!");
+					Lcd_cursor(&lcd, 1,0);
+					Lcd_string(&lcd, "Try again.");
+
+					//Show message on serial terminal
 					printf("Pass-code Incorrect! \r\n");
 					//RED signal
 					cPass = 0;
@@ -251,46 +282,78 @@ int main(void)
 				if(result == NOT_EQUAL){
 					++cPass;
 					state = COMPARING_PASS;
-				}
+				}//if
 				// Pass-codes are equal
 				else{
+					//Show message on LCD
+					Lcd_clear(&lcd);
+					Lcd_cursor(&lcd, 0,0);
+					sprintf(messg, "Input: %.4s", myPass);
+					Lcd_string(&lcd, messg);
+					Lcd_cursor(&lcd, 1,0);
+					sprintf(messg, "%s", db[cPass].name);
+					Lcd_string(&lcd, messg);
+
+					//Show message on serial terminal
 					printf("Pass Accepted, Hello %s! \r\n", db[cPass].name);
 					printf("Press any key to reset. \r\n");
 					//GREEN signal
 					ch = getchar();
-					printf("Hello User!. \r\n");
+					// Initial Message
+					printf("Hello User! \r\n");
+					// Initial message LCD
+					Lcd_clear(&lcd);
+					Lcd_cursor(&lcd, 0,3);
+					Lcd_string(&lcd, "Pass Code");
+					Lcd_cursor(&lcd, 1,0);
+					Lcd_string(&lcd, "by David Calles!");
+					// Reset to default values
 					n = 0;
 					cPass = 0;
 					result = NOT_EQUAL;
 					state = RECEIVING_PASS;
-				}
+				}//else
 				break;
 			}// State 3
 
 			// Default: Go to state 0
 			default:
 				state = RECEIVING_PASS;
-		}
+		}//switch()
 
 	/* USER CODE END WHILE */
+	}//while
+}//main
 
-	/* USER CODE BEGIN 3 */
-	}
-	/* USER CODE END 3 */
-}
-/*
- *
- * Compare strings
- * */
+/**************************************************************************
+------------------------ OWN FUNCTION DEFINITIONS -------------------------
+***************************************************************************/
+
+/*--------------------------------------------------------------------------
+*	Name:			StringCompare
+*	Description:	Compares 2 strings of a given size by evaluating
+*					each element.
+*	Parameters:		char *a:
+*							Array to compare 1.
+*					char *b:
+*							Array to compare 1.
+*					uint8_t n: number of characters in array
+*
+*	Returns:		COMPARISON c: EQUAL or NOT_EQUAL
+---------------------------------------------------------------------------*/
 COMPARISON StringCompare(char *a, char *b, uint8_t n){
 	COMPARISON c = EQUAL;
 	for (int i=0; i<n; i++){
 		if(a[i] != b[i]){
 			c = NOT_EQUAL;
-		}
-	}
+		}//if
+	}//for
 	return c;
-}
+}//StringCompare
+
+/**************************************************************************
+------------------------ OTHER FUNCTION DEFINITIONS -----------------------
+***************************************************************************/
 
 /**
   * @brief System Clock Configuration
