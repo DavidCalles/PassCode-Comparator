@@ -25,12 +25,12 @@ To get use of the sound alarm and the LCD output, these should be wired.
 - A well as a 2x16 LCD in 8-wire configuration. (pins are showed in code as #define).
 - The DAC variables that should be modified depending on your board:
 
-     #define SCALE 0.5	// Magnitude scaling factor
-     #define VREF 2.5	    // Used voltage reference
-
+`#define SCALE 0.5	// Magnitude scaling factor`  
+`#define VREF 2.5	    // Used voltage reference`
+ 
 - The default accepted passwords are:
 
-    // Database with stored passcodes and names
+      // Database with stored passcodes and names
     	static PASSCODE db[NUM_PASSCODES] = {
 	    			{"0123", "David Calles"},
 	    			{"9999", "Allan Smith"},
@@ -43,6 +43,7 @@ To get use of the sound alarm and the LCD output, these should be wired.
 					{"0007", "Visitor7"},
 	    			{"0008", "Visitor8"}
     	};
+
 
 ## Improvements
  Code is far from perfect. 
