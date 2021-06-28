@@ -233,6 +233,9 @@ int main(void)
 					Lcd_string(&lcd, "Try again.");
 					//Show message on serial terminal
 					printf("Input is too long, Try again!: %c \r\n",ch);
+					printf("Press ENTER key to reset. \r\n");
+					ch = getchar();
+					printf("Hello User! \r\n");
 					n = 0;
 					state = RECEIVING_PASS;
 				}//else
@@ -266,6 +269,9 @@ int main(void)
 
 					//Show message on serial terminal
 					printf("Input is too short, Try again! \r\n");
+					printf("Press ENTER key to reset. \r\n");
+					ch = getchar();
+					printf("\r\n Hello User! \r\n");
 					n = 0;
 					state = RECEIVING_PASS;
 				}//else
@@ -298,6 +304,7 @@ int main(void)
 					//Truncate stdin
 					printf("Press ENTER key to reset. \r\n");
 					ch = getchar();
+					printf("\r\n Hello User! \r\n");
 
 					//Sound alarm OFF (DAC with circular DMA triggered by Timer2)
 					HAL_DAC_Stop_DMA(&hdac1, DAC1_CHANNEL_1);
